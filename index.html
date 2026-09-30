@@ -1493,1462 +1493,1927 @@ th{
 
 
 <script>
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
-/* =========================================
-   DATOS
-========================================= */
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
-const ADMIN_EMAIL = "admin@huerta.com";
-const ADMIN_PASSWORD = "admin123";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js";
+
+
+// ======================================================
+// FIREBASE
+// ======================================================
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyCFHi-PbPBcRHNbHhZyfKrESUH5b-dAFNY",
+
+  authDomain: "presentismo-huerta.firebaseapp.com",
+
+  projectId: "presentismo-huerta",
+
+  storageBucket: "presentismo-huerta.firebasestorage.app",
+
+  messagingSenderId: "820296876891",
+
+  appId: "1:820296876891:web:fd261a48e33b7dd0a3107e",
+
+  measurementId: "G-W77XZJNPRQ"
+};
+
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+
+const db = getFirestore(app);
+
+const storage = getStorage(app);
+
+const provider = new GoogleAuthProvider();
+
+
+// ======================================================
+// VARIABLES
+// ======================================================
 
 let currentUser = null;
-let pendingQRAction = null;
 
+let currentProfile = null;
 
-/* =========================================
-   BASE LOCAL
-========================================= */
+let scanner = null;
 
-function getUsers(){
+let scannerType = null;
 
-    return JSON.parse(
-        localStorage.getItem("huerta_users") || "[]"
-    );
 
-}
+// ======================================================
+// ELEMENTOS
+// ======================================================
 
-function saveUsers(users){
+const loginScreen =
+  document.getElementById("loginScreen");
 
-    localStorage.setItem(
-        "huerta_users",
-        JSON.stringify(users)
-    );
+const appScreen =
+  document.getElementById("appScreen");
 
-}
+const googleLoginBtn =
+  document.getElementById("googleLoginBtn");
 
-function getAttendance(){
+const logoutBtn =
+  document.getElementById("logoutBtn");
 
-    return JSON.parse(
-        localStorage.getItem("huerta_attendance") || "[]"
-    );
+const loginError =
+  document.getElementById("loginError");
 
-}
+const headerName =
+  document.getElementById("headerName");
 
-function saveAttendance(data){
+const headerPhoto =
+  document.getElementById("headerPhoto");
 
-    localStorage.setItem(
-        "huerta_attendance",
-        JSON.stringify(data)
-    );
+const roleLabel =
+  document.getElementById("roleLabel");
 
-}
+const studentPanel =
+  document.getElementById("studentPanel");
 
-function getQR(){
+const teacherPanel =
+  document.getElementById("teacherPanel");
 
-    return JSON.parse(
-        localStorage.getItem("huerta_qr") ||
-        '{"entrada":"","salida":""}'
-    );
+const adminPanel =
+  document.getElementById("adminPanel");
 
-}
 
-function saveQR(data){
+// ======================================================
+// LOGIN GOOGLE
+// ======================================================
 
-    localStorage.setItem(
-        "huerta_qr",
-        JSON.stringify(data)
-    );
+googleLoginBtn.addEventListener(
+  "click",
+  async () => {
 
-}
+    loginError.textContent = "";
 
+    try {
 
-/* =========================================
-   FECHA / HORA
-========================================= */
+      await signInWithPopup(
+        auth,
+        provider
+      );
 
-function today(){
+    } catch (error) {
 
-    const d = new Date();
+      console.error(error);
 
-    return d.toISOString().split("T")[0];
-
-}
-
-function timeNow(){
-
-    return new Date().toLocaleTimeString(
-        "es-AR",
-        {
-            hour:"2-digit",
-            minute:"2-digit",
-            second:"2-digit"
-        }
-    );
-
-}
-
-function shortTime(){
-
-    return new Date().toLocaleTimeString(
-        "es-AR",
-        {
-            hour:"2-digit",
-            minute:"2-digit"
-        }
-    );
-
-}
-
-function formatDate(date){
-
-    return new Date(
-        date + "T12:00:00"
-    ).toLocaleDateString(
-        "es-AR",
-        {
-            day:"2-digit",
-            month:"2-digit",
-            year:"numeric"
-        }
-    );
-
-}
-
-function updateClock(){
-
-    const now = new Date();
-
-    const clock = document.getElementById("clock");
-    const adminClock = document.getElementById("adminClock");
-
-    if(clock)
-        clock.textContent = timeNow();
-
-    if(adminClock)
-        adminClock.textContent = timeNow();
-
-    const date = now.toLocaleDateString(
-        "es-AR",
-        {
-            weekday:"long",
-            day:"numeric",
-            month:"long",
-            year:"numeric"
-        }
-    );
-
-    const dateText =
-        document.getElementById("dateText");
-
-    const adminDate =
-        document.getElementById("adminDate");
-
-    if(dateText)
-        dateText.textContent =
-            date.charAt(0).toUpperCase()+date.slice(1);
-
-    if(adminDate)
-        adminDate.textContent =
-            date.charAt(0).toUpperCase()+date.slice(1);
-
-}
-
-setInterval(updateClock,1000);
-
-
-/* =========================================
-   LOGIN / REGISTRO
-========================================= */
-
-function showLogin(){
-
-    document.getElementById("loginForm")
-        .classList.remove("hidden");
-
-    document.getElementById("registerForm")
-        .classList.add("hidden");
-
-    document.getElementById("loginTab")
-        .classList.add("active");
-
-    document.getElementById("registerTab")
-        .classList.remove("active");
-
-    document.getElementById("authTitle")
-        .textContent="Iniciar sesión";
-
-}
-
-function showRegister(){
-
-    document.getElementById("loginForm")
-        .classList.add("hidden");
-
-    document.getElementById("registerForm")
-        .classList.remove("hidden");
-
-    document.getElementById("loginTab")
-        .classList.remove("active");
-
-    document.getElementById("registerTab")
-        .classList.add("active");
-
-    document.getElementById("authTitle")
-        .textContent="Crear cuenta";
-
-}
-
-
-/* LOGIN */
-
-document.getElementById("loginForm")
-.addEventListener("submit",function(e){
-
-    e.preventDefault();
-
-    const email =
-        document.getElementById("loginEmail")
-        .value.trim()
-        .toLowerCase();
-
-    const password =
-        document.getElementById("loginPassword")
-        .value;
-
-    if(
-        email===ADMIN_EMAIL &&
-        password===ADMIN_PASSWORD
-    ){
-
-        currentUser={
-            id:"admin",
-            name:"Administrador",
-            email:ADMIN_EMAIL,
-            role:"admin"
-        };
-
-        openApp();
-
-        return;
-    }
-
-    const user = getUsers().find(
-        u =>
-        u.email===email &&
-        u.password===password
-    );
-
-    if(!user){
-
-        alert("Gmail o contraseña incorrectos.");
-        return;
+      loginError.textContent =
+        "No se pudo iniciar sesión: " +
+        error.message;
 
     }
 
-    currentUser=user;
-
-    openApp();
-
-});
+  }
+);
 
 
-/* REGISTRO */
+// ======================================================
+// LOGOUT
+// ======================================================
 
-document.getElementById("registerForm")
-.addEventListener("submit",function(e){
+logoutBtn.addEventListener(
+  "click",
+  async () => {
 
-    e.preventDefault();
+    await signOut(auth);
 
-    const name =
-        document.getElementById("registerName")
-        .value.trim();
+  }
+);
 
-    const email =
-        document.getElementById("registerEmail")
-        .value.trim()
-        .toLowerCase();
 
-    const password =
-        document.getElementById("registerPassword")
-        .value;
+// ======================================================
+// ESTADO DE AUTENTICACIÓN
+// ======================================================
 
-    if(password.length<4){
+onAuthStateChanged(
+  auth,
+  async (user) => {
 
-        alert("La contraseña debe tener al menos 4 caracteres.");
-        return;
+    if (!user) {
 
+      currentUser = null;
+
+      currentProfile = null;
+
+      loginScreen.classList.remove("hidden");
+
+      appScreen.classList.add("hidden");
+
+      return;
     }
 
-    if(!email.endsWith("@gmail.com")){
 
-        alert("Para este registro utilizá una dirección @gmail.com.");
-        return;
+    currentUser = user;
 
-    }
+    loginScreen.classList.add("hidden");
 
-    const users=getUsers();
+    appScreen.classList.remove("hidden");
 
-    if(
-        users.some(
-            u=>u.email===email
-        )
-    ){
 
-        alert("Ese Gmail ya está registrado.");
-        return;
+    await loadUserProfile(user);
 
-    }
+  }
+);
 
-    const user={
 
-        id:"user_"+Date.now(),
+// ======================================================
+// CREAR / CARGAR PERFIL
+// ======================================================
 
-        name:name,
+async function loadUserProfile(user) {
 
-        email:email,
+  const userRef =
+    doc(db, "usuarios", user.uid);
 
-        password:password,
+  const userSnap =
+    await getDoc(userRef);
 
-        role:"student",
 
-        photo:"",
+  if (!userSnap.exists()) {
 
-        createdAt:new Date().toISOString()
+    currentProfile = {
+
+      uid: user.uid,
+
+      nombre:
+        user.displayName ||
+        "Usuario",
+
+      email:
+        user.email || "",
+
+      foto:
+        user.photoURL || "",
+
+      rol: "alumno",
+
+      creadoEn:
+        serverTimestamp()
 
     };
 
-    users.push(user);
 
-    saveUsers(users);
-
-    alert(
-        "¡Cuenta creada correctamente! Ahora podés ingresar."
+    await setDoc(
+      userRef,
+      currentProfile
     );
 
-    document.getElementById("registerForm").reset();
+  } else {
 
-    showLogin();
+    currentProfile =
+      userSnap.data();
 
-});
+  }
 
 
-/* =========================================
-   ABRIR APP
-========================================= */
+  // Si Firebase tiene una foto y Firestore no
+  if (
+    user.photoURL &&
+    !currentProfile.foto
+  ) {
 
-function openApp(){
+    currentProfile.foto =
+      user.photoURL;
 
-    document
-        .getElementById("loginScreen")
-        .classList.add("hidden");
+  }
 
-    document
-        .getElementById("app")
-        .classList.remove("hidden");
 
-    document.getElementById("topUserName")
-        .textContent=currentUser.name;
+  updateHeader();
 
-    if(currentUser.role==="admin"){
+  showCorrectPanel();
 
-        document
-            .getElementById("adminPanel")
-            .classList.remove("hidden");
+}
 
-        document
-            .getElementById("studentPanel")
-            .classList.add("hidden");
 
-        renderAdmin();
+// ======================================================
+// HEADER
+// ======================================================
 
-        renderQR();
+function updateHeader() {
 
-    }else{
+  headerName.textContent =
+    currentProfile.nombre ||
+    currentUser.displayName ||
+    "Usuario";
 
-        document
-            .getElementById("studentPanel")
-            .classList.remove("hidden");
 
-        document
-            .getElementById("adminPanel")
-            .classList.add("hidden");
+  roleLabel.textContent =
+    getRoleName(
+      currentProfile.rol
+    );
 
-        loadStudent();
 
+  headerPhoto.src =
+    currentProfile.foto ||
+    "https://via.placeholder.com/100?text=%F0%9F%91%A4";
+
+}
+
+
+// ======================================================
+// ROLES
+// ======================================================
+
+function getRoleName(role) {
+
+  if (role === "admin")
+    return "Administrador";
+
+  if (role === "profesor")
+    return "Profesor";
+
+  return "Alumno";
+
+}
+
+
+// ======================================================
+// MOSTRAR PANEL
+// ======================================================
+
+async function showCorrectPanel() {
+
+  studentPanel.classList.add("hidden");
+
+  teacherPanel.classList.add("hidden");
+
+  adminPanel.classList.add("hidden");
+
+
+  if (
+    currentProfile.rol ===
+    "admin"
+  ) {
+
+    adminPanel.classList.remove(
+      "hidden"
+    );
+
+    await loadAdmin();
+
+    return;
+  }
+
+
+  if (
+    currentProfile.rol ===
+    "profesor"
+  ) {
+
+    teacherPanel.classList.remove(
+      "hidden"
+    );
+
+    await loadTeacher();
+
+    return;
+  }
+
+
+  studentPanel.classList.remove(
+    "hidden"
+  );
+
+  await loadStudent();
+
+}
+
+
+// ======================================================
+// ALUMNO
+// ======================================================
+
+async function loadStudent() {
+
+  document.getElementById(
+    "studentWelcome"
+  ).textContent =
+    `Hola, ${currentProfile.nombre}`;
+
+
+  document.getElementById(
+    "studentEmail"
+  ).textContent =
+    currentProfile.email;
+
+
+  document.getElementById(
+    "studentPhoto"
+  ).src =
+    currentProfile.foto ||
+    "https://via.placeholder.com/150?text=%F0%9F%91%A4";
+
+
+  await loadTodayAttendance();
+
+  await loadStudentHistory();
+
+}
+
+
+// ======================================================
+// FECHA ACTUAL
+// ======================================================
+
+function todayKey() {
+
+  const now = new Date();
+
+  const year =
+    now.getFullYear();
+
+  const month =
+    String(
+      now.getMonth() + 1
+    ).padStart(2, "0");
+
+  const day =
+    String(
+      now.getDate()
+    ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+
+}
+
+
+// ======================================================
+// HORA
+// ======================================================
+
+function formatDate(timestamp) {
+
+  if (!timestamp)
+    return "-";
+
+
+  const date =
+    timestamp.toDate
+      ? timestamp.toDate()
+      : new Date(timestamp);
+
+
+  return date.toLocaleString(
+    "es-AR",
+    {
+      dateStyle: "short",
+      timeStyle: "short"
     }
-
-    updateClock();
-
-}
-
-
-/* =========================================
-   LOGOUT
-========================================= */
-
-function logout(){
-
-    currentUser=null;
-
-    document
-        .getElementById("app")
-        .classList.add("hidden");
-
-    document
-        .getElementById("loginScreen")
-        .classList.remove("hidden");
-
-    document
-        .getElementById("loginForm")
-        .reset();
+  );
 
 }
 
 
-/* =========================================
-   ALUMNO
-========================================= */
+// ======================================================
+// PRESENTISMO DE HOY
+// ======================================================
 
-function loadStudent(){
+async function loadTodayAttendance() {
 
-    document.getElementById("studentWelcome")
-        .textContent=currentUser.name;
+  const id =
+    `${currentUser.uid}_${todayKey()}`;
 
-    document.getElementById("profileName")
-        .textContent=currentUser.name;
 
-    document.getElementById("profileEmail")
-        .textContent=currentUser.email;
-
-    setPhoto(
-        currentUser.photo,
-        "studentPhoto"
+  const attendanceRef =
+    doc(
+      db,
+      "presentismo",
+      id
     );
 
-    setPhoto(
-        currentUser.photo,
-        "topAvatar"
+
+  const snap =
+    await getDoc(
+      attendanceRef
     );
 
-    renderToday();
 
-    renderStudentHistory();
-
-}
-
-
-function setPhoto(photo,id){
-
-    const element=document.getElementById(id);
-
-    if(!element)
-        return;
-
-    if(photo){
-
-        element.innerHTML=
-            `<img src="${photo}"
-             style="width:100%;height:100%;
-             object-fit:cover;border-radius:inherit;">`;
-
-    }else{
-
-        element.textContent="👤";
-
-    }
-
-}
-
-
-/* CAMBIAR FOTO */
-
-function changePhoto(event){
-
-    const file=event.target.files[0];
-
-    if(!file)
-        return;
-
-    const reader=new FileReader();
-
-    reader.onload=function(){
-
-        const users=getUsers();
-
-        const index=users.findIndex(
-            u=>u.id===currentUser.id
-        );
-
-        if(index!==-1){
-
-            users[index].photo=reader.result;
-
-            currentUser.photo=reader.result;
-
-            saveUsers(users);
-
-            setPhoto(
-                reader.result,
-                "studentPhoto"
-            );
-
-            setPhoto(
-                reader.result,
-                "topAvatar"
-            );
-
-        }
-
-    };
-
-    reader.readAsDataURL(file);
-
-}
-
-
-/* =========================================
-   PRESENTISMO DEL DÍA
-========================================= */
-
-function getTodayRecord(){
-
-    return getAttendance().find(
-        r =>
-        r.userId===currentUser.id &&
-        r.date===today()
+  const status =
+    document.getElementById(
+      "attendanceStatus"
     );
 
-}
 
-
-function renderToday(){
-
-    const record=getTodayRecord();
-
-    const entry=document.getElementById("entryTime");
-    const exit=document.getElementById("exitTime");
-
-    const entryButton=
-        document.getElementById("entryButton");
-
-    const exitButton=
-        document.getElementById("exitButton");
-
-    const status=
-        document.getElementById("todayStatus");
-
-    if(!record){
-
-        entry.textContent="—";
-        exit.textContent="—";
-
-        entryButton.disabled=false;
-        exitButton.disabled=true;
-
-        status.textContent="Sin registrar";
-        status.className="status yellow";
-
-        return;
-
-    }
-
-    entry.textContent=record.entry || "—";
-    exit.textContent=record.exit || "—";
-
-    entryButton.disabled=!!record.entry;
-    exitButton.disabled=!record.entry || !!record.exit;
-
-    if(record.exit){
-
-        status.textContent="Jornada completa";
-        status.className="status green";
-
-    }else{
-
-        status.textContent="Presente";
-        status.className="status yellow";
-
-    }
-
-}
-
-
-/* =========================================
-   QR
-========================================= */
-
-function generateToken(){
-
-    return (
-        Math.random()
-        .toString(36)
-        .substring(2,8)
-        .toUpperCase()
-        +
-        Date.now()
-        .toString(36)
-        .toUpperCase()
+  const times =
+    document.getElementById(
+      "attendanceTimes"
     );
 
-}
+
+  if (!snap.exists()) {
+
+    status.textContent =
+      "Sin registrar";
+
+    times.textContent =
+      "Todavía no registraste asistencia.";
+
+    return;
+
+  }
 
 
-function initializeQR(){
-
-    const qr=getQR();
-
-    if(!qr.entrada)
-        qr.entrada=generateToken();
-
-    if(!qr.salida)
-        qr.salida=generateToken();
-
-    saveQR(qr);
-
-}
-
-initializeQR();
+  const data =
+    snap.data();
 
 
-function requestQR(type){
+  if (data.entrada) {
 
-    pendingQRAction=type;
+    status.textContent =
+      data.salida
+        ? "Jornada finalizada"
+        : "Presente";
 
-    document.getElementById("qrInput").value="";
+    times.textContent =
+      `Entrada: ${
+        formatDate(data.entrada)
+      }` +
+      (
+        data.salida
+          ? ` · Salida: ${formatDate(data.salida)}`
+          : ""
+      );
 
-    document
-        .getElementById("qrModal")
-        .classList.remove("hidden");
-
-}
-
-
-function closeQRModal(){
-
-    document
-        .getElementById("qrModal")
-        .classList.add("hidden");
+  }
 
 }
 
 
-function validateQR(){
+// ======================================================
+// HISTORIAL ALUMNO
+// ======================================================
 
-    const value=
-        document.getElementById("qrInput")
-        .value
-        .trim()
-        .toUpperCase();
+async function loadStudentHistory() {
 
-    const qr=getQR();
-
-    if(value !== qr[pendingQRAction]){
-
-        alert(
-            "QR incorrecto o vencido. Pedile al administrador que genere uno nuevo."
-        );
-
-        return;
-
-    }
-
-    if(pendingQRAction==="entrada")
-        registerEntry();
-
-    if(pendingQRAction==="salida")
-        registerExit();
-
-    closeQRModal();
-
-}
-
-
-/* ENTRADA */
-
-function registerEntry(){
-
-    const data=getAttendance();
-
-    const existing=data.find(
-        r =>
-        r.userId===currentUser.id &&
-        r.date===today()
+  const container =
+    document.getElementById(
+      "studentHistory"
     );
 
-    if(existing){
 
-        alert("Ya registraste tu entrada.");
-        return;
-
-    }
-
-    data.push({
-
-        id:"attendance_"+Date.now(),
-
-        userId:currentUser.id,
-
-        name:currentUser.name,
-
-        email:currentUser.email,
-
-        date:today(),
-
-        entry:shortTime(),
-
-        exit:""
-
-    });
-
-    saveAttendance(data);
-
-    renderToday();
-
-    renderStudentHistory();
-
-    alert(
-        "✅ Entrada registrada a las "+
-        shortTime()
-    );
-
-}
+  container.innerHTML =
+    "Cargando...";
 
 
-/* SALIDA */
+  try {
 
-function registerExit(){
-
-    const data=getAttendance();
-
-    const index=data.findIndex(
-        r =>
-        r.userId===currentUser.id &&
-        r.date===today()
-    );
-
-    if(index===-1){
-
-        alert("Primero tenés que registrar la entrada.");
-        return;
-
-    }
-
-    if(data[index].exit){
-
-        alert("La salida ya fue registrada.");
-        return;
-
-    }
-
-    data[index].exit=shortTime();
-
-    saveAttendance(data);
-
-    renderToday();
-
-    renderStudentHistory();
-
-    alert(
-        "✅ Salida registrada a las "+
-        shortTime()
-    );
-
-}
-
-
-/* =========================================
-   HISTORIAL ALUMNO
-========================================= */
-
-function calculateHours(entry,exit){
-
-    if(!entry || !exit)
-        return "—";
-
-    const e=entry.split(":").map(Number);
-    const s=exit.split(":").map(Number);
-
-    let minutesE=e[0]*60+e[1];
-    let minutesS=s[0]*60+s[1];
-
-    if(minutesS<minutesE)
-        minutesS+=24*60;
-
-    const diff=minutesS-minutesE;
-
-    const h=Math.floor(diff/60);
-    const m=diff%60;
-
-    return `${h}h ${String(m).padStart(2,"0")}m`;
-
-}
-
-
-function renderStudentHistory(){
-
-    const tbody=
-        document.getElementById("studentHistory");
-
-    if(!tbody)
-        return;
-
-    const records=
-        getAttendance()
-        .filter(
-            r=>r.userId===currentUser.id
+    const q =
+      query(
+        collection(
+          db,
+          "presentismo"
+        ),
+        where(
+          "alumnoId",
+          "==",
+          currentUser.uid
+        ),
+        orderBy(
+          "fecha",
+          "desc"
         )
-        .sort(
-            (a,b)=>b.date.localeCompare(a.date)
-        );
-
-    if(!records.length){
-
-        tbody.innerHTML=
-            `<tr>
-                <td colspan="4" class="empty">
-                    Todavía no tenés registros.
-                </td>
-            </tr>`;
-
-        return;
-
-    }
-
-    tbody.innerHTML=records.map(r=>`
-
-        <tr>
-
-            <td>${formatDate(r.date)}</td>
-
-            <td>${r.entry || "—"}</td>
-
-            <td>${r.exit || "—"}</td>
-
-            <td>
-                ${calculateHours(r.entry,r.exit)}
-            </td>
-
-        </tr>
-
-    `).join("");
-
-}
+      );
 
 
-/* =========================================
-   ADMIN
-========================================= */
-
-function renderAdmin(){
-
-    const users=getUsers();
-
-    const records=getAttendance();
-
-    const todayRecords=
-        records.filter(
-            r=>r.date===today()
-        );
-
-    document.getElementById("statStudents")
-        .textContent=users.length;
-
-    document.getElementById("statPresent")
-        .textContent=todayRecords.length;
-
-    document.getElementById("statFinished")
-        .textContent=
-        todayRecords.filter(r=>r.exit).length;
-
-    document.getElementById("statOpen")
-        .textContent=
-        todayRecords.filter(r=>!r.exit).length;
-
-    renderAdminTable();
-
-    renderStudents();
-
-}
+    const snapshot =
+      await getDocs(q);
 
 
-function renderAdminTable(){
+    if (snapshot.empty) {
 
-    const tbody=
-        document.getElementById("adminTable");
+      container.innerHTML =
+        "<p>No hay registros todavía.</p>";
 
-    const search=
-        document.getElementById("adminSearch")
-        ?.value
-        .toLowerCase() || "";
-
-    const filter=
-        document.getElementById("adminStatus")
-        ?.value || "todos";
-
-    let records=
-        getAttendance()
-        .filter(
-            r=>r.date===today()
-        );
-
-    records=records.filter(r=>{
-
-        const matchName=
-            r.name.toLowerCase().includes(search);
-
-        const matchStatus=
-            filter==="todos" ||
-            (filter==="presente" && !r.exit) ||
-            (filter==="salida" && !!r.exit) ||
-            (filter==="pendiente" && !r.exit);
-
-        return matchName && matchStatus;
-
-    });
-
-    if(!records.length){
-
-        tbody.innerHTML=
-            `<tr>
-                <td colspan="6" class="empty">
-                    No hay registros para mostrar.
-                </td>
-            </tr>`;
-
-        return;
+      return;
 
     }
 
-    tbody.innerHTML=records.map(r=>`
 
-        <tr class="student-row"
-            onclick="openStudent('${r.userId}')">
-
-            <td>
-                ${r.name}
-            </td>
-
-            <td>
-                ${r.email}
-            </td>
-
-            <td>
-                ${r.entry || "—"}
-            </td>
-
-            <td>
-                ${r.exit || "—"}
-            </td>
-
-            <td>
-
-                ${
-                    r.exit
-                    ?
-                    '<span class="status green">Completo</span>'
-                    :
-                    '<span class="status yellow">Presente</span>'
-                }
-
-            </td>
-
-            <td>
-                ${calculateHours(r.entry,r.exit)}
-            </td>
-
-        </tr>
-
-    `).join("");
-
-}
+    container.innerHTML = "";
 
 
-/* =========================================
-   ALUMNOS
-========================================= */
+    snapshot.forEach(
+      (docSnap) => {
 
-function renderStudents(){
+        const data =
+          docSnap.data();
 
-    const users=getUsers();
 
-    const tbody=
-        document.getElementById("studentsTable");
+        const item =
+          document.createElement(
+            "div"
+          );
 
-    document.getElementById("studentCount")
-        .textContent=
-        `${users.length} alumno${users.length===1?"":"s"}`;
+        item.className =
+          "history-item";
 
-    if(!users.length){
 
-        tbody.innerHTML=
-            `<tr>
-                <td colspan="5" class="empty">
-                    Todavía no hay alumnos registrados.
-                </td>
-            </tr>`;
+        item.innerHTML = `
 
-        return;
+          <strong>
+            ${data.fecha || "-"}
+          </strong>
 
-    }
+          <span>
+            Entrada:
+            ${
+              formatDate(
+                data.entrada
+              )
+            }
+          </span>
 
-    tbody.innerHTML=users.map(user=>{
+          <span>
+            Salida:
+            ${
+              formatDate(
+                data.salida
+              )
+            }
+          </span>
 
-        const records=
-            getAttendance()
-            .filter(
-                r=>r.userId===user.id
-            );
-
-        const last=
-            records
-            .sort(
-                (a,b)=>b.date.localeCompare(a.date)
-            )[0];
-
-        return `
-
-        <tr>
-
-            <td>
-                ${
-                    user.photo
-                    ?
-                    `<img
-                        src="${user.photo}"
-                        class="student-avatar"
-                    >`
-                    :
-                    "👤"
-                }
-
-                ${user.name}
-
-            </td>
-
-            <td>
-                ${user.email}
-            </td>
-
-            <td>
-                ${records.length}
-            </td>
-
-            <td>
-                ${
-                    last
-                    ?
-                    formatDate(last.date)+" "+(last.entry||"")
-                    :
-                    "—"
-                }
-            </td>
-
-            <td>
-
-                <button
-                    class="secondary-btn"
-                    onclick="openStudent('${user.id}')">
-                    Ver perfil
-                </button>
-
-            </td>
-
-        </tr>
+          <span>
+            ${
+              data.salida
+                ? "Finalizado"
+                : "Abierto"
+            }
+          </span>
 
         `;
 
-    }).join("");
+
+        container.appendChild(item);
+
+      }
+    );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    container.innerHTML =
+      "No se pudo cargar el historial.";
+
+  }
 
 }
 
 
-/* =========================================
-   PERFIL ADMIN
-========================================= */
+// ======================================================
+// ESCANEAR ENTRADA
+// ======================================================
 
-function openStudent(id){
+document.getElementById(
+  "scanEntryBtn"
+).addEventListener(
+  "click",
+  () => {
 
-    const user=getUsers().find(
-        u=>u.id===id
+    scannerType =
+      "entrada";
+
+    openScanner(
+      "Escanear QR de entrada"
     );
 
-    if(!user)
-        return;
+  }
+);
 
-    const records=
-        getAttendance()
-        .filter(
-            r=>r.userId===id
-        )
-        .sort(
-            (a,b)=>b.date.localeCompare(a.date)
+
+// ======================================================
+// ESCANEAR SALIDA
+// ======================================================
+
+document.getElementById(
+  "scanExitBtn"
+).addEventListener(
+  "click",
+  () => {
+
+    scannerType =
+      "salida";
+
+    openScanner(
+      "Escanear QR de salida"
+    );
+
+  }
+);
+
+
+// ======================================================
+// ABRIR SCANNER
+// ======================================================
+
+async function openScanner(title) {
+
+  document.getElementById(
+    "scannerModal"
+  ).classList.remove(
+    "hidden"
+  );
+
+
+  document.getElementById(
+    "scannerTitle"
+  ).textContent =
+    title;
+
+
+  document.getElementById(
+    "scannerMessage"
+  ).textContent =
+    "";
+
+
+  scanner =
+    new Html5Qrcode(
+      "qr-reader"
+    );
+
+
+  try {
+
+    await scanner.start(
+
+      {
+        facingMode: "environment"
+      },
+
+      {
+        fps: 10,
+
+        qrbox: {
+          width: 250,
+          height: 250
+        }
+
+      },
+
+      async (decodedText) => {
+
+        await processQr(
+          decodedText
         );
 
-    const totalHours=records.reduce(
-        (sum,r)=>{
+      },
 
-            if(!r.entry || !r.exit)
-                return sum;
+      () => {}
 
-            const e=r.entry.split(":").map(Number);
-            const s=r.exit.split(":").map(Number);
-
-            let a=e[0]*60+e[1];
-            let b=s[0]*60+s[1];
-
-            if(b<a)
-                b+=1440;
-
-            return sum+(b-a);
-
-        },
-        0
     );
 
-    const hours=Math.floor(totalHours/60);
-    const minutes=totalHours%60;
+  } catch (error) {
 
-    document.getElementById("studentDetails")
-        .innerHTML=`
+    console.error(error);
 
-        <div class="profile">
+    document.getElementById(
+      "scannerMessage"
+    ).textContent =
+      "No se pudo acceder a la cámara.";
 
-            <div class="profile-photo">
+  }
 
-                ${
-                    user.photo
-                    ?
-                    `<img
-                        src="${user.photo}"
-                        style="width:100%;height:100%;
-                        object-fit:cover;border-radius:inherit;"
-                    >`
-                    :
-                    "👤"
-                }
+}
 
-            </div>
 
-            <div>
+// ======================================================
+// CERRAR SCANNER
+// ======================================================
 
-                <h2>${user.name}</h2>
+document.getElementById(
+  "closeScannerBtn"
+).addEventListener(
+  "click",
+  closeScanner
+);
 
-                <p style="color:var(--gris);">
-                    ${user.email}
-                </p>
 
-            </div>
+async function closeScanner() {
 
-        </div>
+  if (scanner) {
 
-        <div class="detail-grid">
+    try {
 
-            <div class="detail">
+      await scanner.stop();
 
-                <span>Asistencias</span>
+      scanner.clear();
 
-                <strong>
-                    ${records.length}
-                </strong>
+    } catch (e) {}
 
-            </div>
+    scanner = null;
 
-            <div class="detail">
+  }
 
-                <span>Horas registradas</span>
 
-                <strong>
-                    ${hours}h ${minutes}m
-                </strong>
+  document.getElementById(
+    "scannerModal"
+  ).classList.add(
+    "hidden"
+  );
 
-            </div>
+}
 
-            <div class="detail">
 
-                <span>Cuenta creada</span>
+// ======================================================
+// PROCESAR QR
+// ======================================================
 
-                <strong>
-                    ${
-                        user.createdAt
-                        ?
-                        new Date(user.createdAt)
-                        .toLocaleDateString("es-AR")
-                        :
-                        "—"
-                    }
-                </strong>
+async function processQr(
+  qrText
+) {
 
-            </div>
+  try {
 
-            <div class="detail">
+    const parts =
+      qrText.split("|");
 
-                <span>Estado</span>
 
-                <strong style="color:var(--verde);">
-                    Activo
-                </strong>
+    if (
+      parts.length !== 3 ||
+      parts[0] !== "HUERTA"
+    ) {
 
-            </div>
+      throw new Error(
+        "QR no válido."
+      );
 
-        </div>
+    }
 
-        <div style="margin-top:25px;">
 
-            <h3 style="margin-bottom:15px;">
-                Historial
-            </h3>
+    const qrType =
+      parts[1];
 
-            <div class="table-scroll">
+    const token =
+      parts[2];
 
-                <table>
 
-                    <thead>
+    if (
+      qrType !==
+      scannerType.toUpperCase()
+    ) {
 
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Entrada</th>
-                            <th>Salida</th>
-                            <th>Horas</th>
-                        </tr>
+      throw new Error(
+        "Este QR no corresponde a esta acción."
+      );
 
-                    </thead>
+    }
 
-                    <tbody>
 
-                        ${
-                            records.length
-                            ?
-                            records.map(r=>`
+    const configRef =
+      doc(
+        db,
+        "configuracion",
+        "qr"
+      );
 
-                                <tr>
 
-                                    <td>
-                                        ${formatDate(r.date)}
-                                    </td>
+    const configSnap =
+      await getDoc(
+        configRef
+      );
 
-                                    <td>
-                                        ${r.entry||"—"}
-                                    </td>
 
-                                    <td>
-                                        ${r.exit||"—"}
-                                    </td>
+    if (!configSnap.exists()) {
 
-                                    <td>
-                                        ${calculateHours(r.entry,r.exit)}
-                                    </td>
+      throw new Error(
+        "No hay QR configurado."
+      );
 
-                                </tr>
+    }
 
-                            `).join("")
-                            :
-                            `
-                            <tr>
-                                <td colspan="4"
-                                    class="empty">
-                                    Sin registros.
-                                </td>
-                            </tr>
-                            `
-                        }
 
-                    </tbody>
+    const config =
+      configSnap.data();
 
-                </table>
 
-            </div>
+    const validToken =
+      scannerType ===
+      "entrada"
+        ? config.entradaToken
+        : config.salidaToken;
 
-        </div>
+
+    if (
+      token !== validToken
+    ) {
+
+      throw new Error(
+        "Este QR ya no es válido."
+      );
+
+    }
+
+
+    await registerAttendance(
+      scannerType
+    );
+
+
+    document.getElementById(
+      "scannerMessage"
+    ).textContent =
+      scannerType === "entrada"
+        ? "✅ Entrada registrada correctamente."
+        : "✅ Salida registrada correctamente.";
+
+
+    setTimeout(
+      closeScanner,
+      1300
+    );
+
+
+    await loadTodayAttendance();
+
+    await loadStudentHistory();
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById(
+      "scannerMessage"
+    ).textContent =
+      "❌ " + error.message;
+
+  }
+
+}
+
+
+// ======================================================
+// REGISTRAR PRESENTISMO
+// ======================================================
+
+async function registerAttendance(
+  type
+) {
+
+  const id =
+    `${currentUser.uid}_${todayKey()}`;
+
+
+  const attendanceRef =
+    doc(
+      db,
+      "presentismo",
+      id
+    );
+
+
+  const snap =
+    await getDoc(
+      attendanceRef
+    );
+
+
+  if (type === "entrada") {
+
+    if (snap.exists()) {
+
+      const data =
+        snap.data();
+
+
+      if (data.entrada) {
+
+        throw new Error(
+          "Ya registraste tu entrada."
+        );
+
+      }
+
+    }
+
+
+    await setDoc(
+      attendanceRef,
+      {
+
+        alumnoId:
+          currentUser.uid,
+
+        alumnoNombre:
+          currentProfile.nombre,
+
+        alumnoEmail:
+          currentProfile.email,
+
+        fecha:
+          todayKey(),
+
+        entrada:
+          serverTimestamp(),
+
+        salida:
+          null
+
+      },
+      {
+        merge: true
+      }
+    );
+
+    return;
+  }
+
+
+  if (type === "salida") {
+
+    if (!snap.exists()) {
+
+      throw new Error(
+        "Primero tenés que registrar la entrada."
+      );
+
+    }
+
+
+    const data =
+      snap.data();
+
+
+    if (!data.entrada) {
+
+      throw new Error(
+        "Primero tenés que registrar la entrada."
+      );
+
+    }
+
+
+    if (data.salida) {
+
+      throw new Error(
+        "Ya registraste tu salida."
+      );
+
+    }
+
+
+    await updateDoc(
+      attendanceRef,
+      {
+
+        salida:
+          serverTimestamp()
+
+      }
+    );
+
+  }
+
+}
+
+
+// ======================================================
+// FOTO
+// ======================================================
+
+document.getElementById(
+  "uploadPhotoBtn"
+).addEventListener(
+  "click",
+  uploadProfilePhoto
+);
+
+
+async function uploadProfilePhoto() {
+
+  const input =
+    document.getElementById(
+      "photoInput"
+    );
+
+
+  const file =
+    input.files[0];
+
+
+  if (!file) {
+
+    alert(
+      "Seleccioná una foto primero."
+    );
+
+    return;
+
+  }
+
+
+  const message =
+    document.getElementById(
+      "photoMessage"
+    );
+
+
+  try {
+
+    message.textContent =
+      "Subiendo foto...";
+
+
+    const storageRef =
+      ref(
+        storage,
+        `usuarios/${currentUser.uid}/perfil.jpg`
+      );
+
+
+    await uploadBytes(
+      storageRef,
+      file
+    );
+
+
+    const url =
+      await getDownloadURL(
+        storageRef
+      );
+
+
+    await updateDoc(
+      doc(
+        db,
+        "usuarios",
+        currentUser.uid
+      ),
+      {
+        foto: url
+      }
+    );
+
+
+    currentProfile.foto =
+      url;
+
+
+    updateHeader();
+
+
+    document.getElementById(
+      "studentPhoto"
+    ).src =
+      url;
+
+
+    message.textContent =
+      "✅ Foto guardada correctamente.";
+
+  } catch (error) {
+
+    console.error(error);
+
+    message.textContent =
+      "❌ No se pudo subir la foto.";
+
+  }
+
+}
+
+
+// ======================================================
+// PROFESOR
+// ======================================================
+
+async function loadTeacher() {
+
+  document.getElementById(
+    "teacherWelcome"
+  ).textContent =
+    `Hola, ${currentProfile.nombre}`;
+
+
+  document.getElementById(
+    "teacherPhoto"
+  ).src =
+    currentProfile.foto ||
+    "https://via.placeholder.com/150?text=%F0%9F%91%A4";
+
+
+  await loadTeacherAttendance();
+
+}
+
+
+// ======================================================
+// PRESENTISMO PROFESOR
+// ======================================================
+
+async function loadTeacherAttendance() {
+
+  const tbody =
+    document.getElementById(
+      "teacherAttendanceTable"
+    );
+
+
+  tbody.innerHTML =
+    "<tr><td colspan='4'>Cargando...</td></tr>";
+
+
+  try {
+
+    const q =
+      query(
+        collection(
+          db,
+          "presentismo"
+        ),
+        orderBy(
+          "fecha",
+          "desc"
+        )
+      );
+
+
+    const snapshot =
+      await getDocs(q);
+
+
+    let total = 0;
+
+    let today = 0;
+
+
+    tbody.innerHTML = "";
+
+
+    snapshot.forEach(
+      (docSnap) => {
+
+        const data =
+          docSnap.data();
+
+
+        total++;
+
+
+        if (
+          data.fecha ===
+          todayKey()
+        ) {
+
+          today++;
+
+        }
+
+
+        const tr =
+          document.createElement(
+            "tr"
+          );
+
+
+        tr.innerHTML = `
+
+          <td>
+            ${escapeHtml(
+              data.alumnoNombre ||
+              "-"
+            )}
+          </td>
+
+          <td>
+            ${data.fecha || "-"}
+          </td>
+
+          <td>
+            ${formatDate(
+              data.entrada
+            )}
+          </td>
+
+          <td>
+            ${formatDate(
+              data.salida
+            )}
+          </td>
 
         `;
 
-    document
-        .getElementById("studentModal")
-        .classList.remove("hidden");
 
-}
+        tbody.appendChild(tr);
 
-
-function closeStudentModal(){
-
-    document
-        .getElementById("studentModal")
-        .classList.add("hidden");
-
-}
-
-
-/* =========================================
-   SECCIONES ADMIN
-========================================= */
-
-function showAdminSection(section){
-
-    document
-        .getElementById("adminDashboard")
-        .classList.add("hidden");
-
-    document
-        .getElementById("adminQR")
-        .classList.add("hidden");
-
-    document
-        .getElementById("adminStudents")
-        .classList.add("hidden");
-
-    document
-        .getElementById("tabDashboard")
-        .classList.remove("active");
-
-    document
-        .getElementById("tabQR")
-        .classList.remove("active");
-
-    document
-        .getElementById("tabStudents")
-        .classList.remove("active");
-
-    if(section==="dashboard"){
-
-        document
-            .getElementById("adminDashboard")
-            .classList.remove("hidden");
-
-        document
-            .getElementById("tabDashboard")
-            .classList.add("active");
-
-    }
-
-    if(section==="qr"){
-
-        document
-            .getElementById("adminQR")
-            .classList.remove("hidden");
-
-        document
-            .getElementById("tabQR")
-            .classList.add("active");
-
-        renderQR();
-
-    }
-
-    if(section==="students"){
-
-        document
-            .getElementById("adminStudents")
-            .classList.remove("hidden");
-
-        document
-            .getElementById("tabStudents")
-            .classList.add("active");
-
-        renderStudents();
-
-    }
-
-}
-
-
-/* =========================================
-   ADMIN QR
-========================================= */
-
-function renderQR(){
-
-    const qr=getQR();
-
-    createQR(
-        "entryQR",
-        qr.entrada
+      }
     );
 
-    createQR(
-        "exitQR",
-        qr.salida
-    );
 
-    document.getElementById("entryQRText")
-        .textContent=qr.entrada;
+    document.getElementById(
+      "teacherTotal"
+    ).textContent =
+      total;
 
-    document.getElementById("exitQRText")
-        .textContent=qr.salida;
+
+    document.getElementById(
+      "teacherToday"
+    ).textContent =
+      today;
+
+
+    if (!snapshot.size) {
+
+      tbody.innerHTML =
+        "<tr><td colspan='4'>No hay registros.</td></tr>";
+
+    }
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    tbody.innerHTML =
+      "<tr><td colspan='4'>Error al cargar datos.</td></tr>";
+
+  }
 
 }
 
 
-function createQR(elementId,text){
+document.getElementById(
+  "refreshTeacherBtn"
+).addEventListener(
+  "click",
+  loadTeacherAttendance
+);
 
-    const container=
-        document.getElementById(elementId);
 
-    if(!container)
-        return;
+// ======================================================
+// ADMIN
+// ======================================================
 
-    container.innerHTML="";
+async function loadAdmin() {
 
-    new QRCode(
-        container,
-        {
-            text:text,
-            width:230,
-            height:230,
-            colorDark:"#173f2b",
-            colorLight:"#ffffff",
-            correctLevel:QRCode.CorrectLevel.H
+  await loadAdminUsers();
+
+  await loadAdminAttendance();
+
+  await loadQrCodes();
+
+}
+
+
+// ======================================================
+// USUARIOS ADMIN
+// ======================================================
+
+async function loadAdminUsers() {
+
+  const tbody =
+    document.getElementById(
+      "usersTable"
+    );
+
+
+  tbody.innerHTML =
+    "<tr><td colspan='4'>Cargando...</td></tr>";
+
+
+  try {
+
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          "usuarios"
+        )
+      );
+
+
+    let students = 0;
+
+    let teachers = 0;
+
+
+    tbody.innerHTML = "";
+
+
+    snapshot.forEach(
+      (docSnap) => {
+
+        const data =
+          docSnap.data();
+
+
+        if (
+          data.rol ===
+          "alumno"
+        ) {
+
+          students++;
+
         }
+
+
+        if (
+          data.rol ===
+          "profesor"
+        ) {
+
+          teachers++;
+
+        }
+
+
+        const tr =
+          document.createElement(
+            "tr"
+          );
+
+
+        tr.innerHTML = `
+
+          <td>
+            ${escapeHtml(
+              data.nombre ||
+              "-"
+            )}
+          </td>
+
+          <td>
+            ${escapeHtml(
+              data.email ||
+              "-"
+            )}
+          </td>
+
+          <td>
+            ${getRoleName(
+              data.rol
+            )}
+          </td>
+
+          <td>
+            ${formatDate(
+              data.creadoEn
+            )}
+          </td>
+
+        `;
+
+
+        tbody.appendChild(tr);
+
+      }
     );
+
+
+    document.getElementById(
+      "adminUsersCount"
+    ).textContent =
+      snapshot.size;
+
+
+    document.getElementById(
+      "adminStudentsCount"
+    ).textContent =
+      students;
+
+
+    document.getElementById(
+      "adminTeachersCount"
+    ).textContent =
+      teachers;
+
+
+    if (!snapshot.size) {
+
+      tbody.innerHTML =
+        "<tr><td colspan='4'>No hay usuarios.</td></tr>";
+
+    }
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    tbody.innerHTML =
+      "<tr><td colspan='4'>Error al cargar usuarios.</td></tr>";
+
+  }
 
 }
 
 
-function renewQR(type){
+// ======================================================
+// ADMIN PRESENTISMO
+// ======================================================
 
-    const qr=getQR();
+async function loadAdminAttendance() {
 
-    qr[type]=generateToken();
-
-    saveQR(qr);
-
-    renderQR();
-
-    alert(
-        `QR de ${type} renovado correctamente.`
+  const tbody =
+    document.getElementById(
+      "adminAttendanceTable"
     );
+
+
+  tbody.innerHTML =
+    "<tr><td colspan='4'>Cargando...</td></tr>";
+
+
+  try {
+
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          "presentismo"
+        )
+      );
+
+
+    let today = 0;
+
+
+    tbody.innerHTML = "";
+
+
+    snapshot.forEach(
+      (docSnap) => {
+
+        const data =
+          docSnap.data();
+
+
+        if (
+          data.fecha ===
+          todayKey()
+        ) {
+
+          today++;
+
+        }
+
+
+        const tr =
+          document.createElement(
+            "tr"
+          );
+
+
+        tr.innerHTML = `
+
+          <td>
+            ${escapeHtml(
+              data.alumnoNombre ||
+              "-"
+            )}
+          </td>
+
+          <td>
+            ${data.fecha || "-"}
+          </td>
+
+          <td>
+            ${formatDate(
+              data.entrada
+            )}
+          </td>
+
+          <td>
+            ${formatDate(
+              data.salida
+            )}
+          </td>
+
+        `;
+
+
+        tbody.appendChild(tr);
+
+      }
+    );
+
+
+    document.getElementById(
+      "adminPresentToday"
+    ).textContent =
+      today;
+
+
+    if (!snapshot.size) {
+
+      tbody.innerHTML =
+        "<tr><td colspan='4'>No hay registros.</td></tr>";
+
+    }
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    tbody.innerHTML =
+      "<tr><td colspan='4'>Error al cargar presentismo.</td></tr>";
+
+  }
 
 }
 
 
-/* =========================================
-   ESCAPE MODALS
-========================================= */
+// ======================================================
+// QR ADMIN
+// ======================================================
 
-document
-    .getElementById("qrModal")
-    .addEventListener("click",function(e){
+async function loadQrCodes() {
 
-        if(e.target===this)
-            closeQRModal();
-
-    });
-
-document
-    .getElementById("studentModal")
-    .addEventListener("click",function(e){
-
-        if(e.target===this)
-            closeStudentModal();
-
-    });
+  const qrRef =
+    doc(
+      db,
+      "configuracion",
+      "qr"
+    );
 
 
-/* =========================================
-   INICIO
-========================================= */
+  const snap =
+    await getDoc(qrRef);
 
-updateClock();
 
+  if (!snap.exists()) {
+
+    await createQrTokens();
+
+    return;
+
+  }
+
+
+  const data =
+    snap.data();
+
+
+  drawQr(
+    "entryQr",
+    `HUERTA|ENTRADA|${data.entradaToken}`
+  );
+
+
+  drawQr(
+    "exitQr",
+    `HUERTA|SALIDA|${data.salidaToken}`
+  );
+
+
+  document.getElementById(
+    "entryQrStatus"
+  ).textContent =
+    "QR activo";
+
+
+  document.getElementById(
+    "exitQrStatus"
+  ).textContent =
+    "QR activo";
+
+}
+
+
+// ======================================================
+// CREAR QR
+// ======================================================
+
+async function createQrTokens() {
+
+  const entradaToken =
+    randomToken();
+
+
+  const salidaToken =
+    randomToken();
+
+
+  await setDoc(
+
+    doc(
+      db,
+      "configuracion",
+      "qr"
+    ),
+
+    {
+
+      entradaToken,
+
+      salidaToken,
+
+      actualizadoEn:
+        serverTimestamp()
+
+    }
+
+  );
+
+
+  drawQr(
+    "entryQr",
+    `HUERTA|ENTRADA|${entradaToken}`
+  );
+
+
+  drawQr(
+    "exitQr",
+    `HUERTA|SALIDA|${salidaToken}`
+  );
+
+}
+
+
+// ======================================================
+// RENOVAR QR ENTRADA
+// ======================================================
+
+document.getElementById(
+  "renewEntryQrBtn"
+).addEventListener(
+  "click",
+  async () => {
+
+    const newToken =
+      randomToken();
+
+
+    await updateDoc(
+
+      doc(
+        db,
+        "configuracion",
+        "qr"
+      ),
+
+      {
+
+        entradaToken:
+          newToken,
+
+        actualizadoEn:
+          serverTimestamp()
+
+      }
+
+    );
+
+
+    drawQr(
+      "entryQr",
+      `HUERTA|ENTRADA|${newToken}`
+    );
+
+
+    document.getElementById(
+      "entryQrStatus"
+    ).textContent =
+      "QR renovado correctamente.";
+
+  }
+);
+
+
+// ======================================================
+// RENOVAR QR SALIDA
+// ======================================================
+
+document.getElementById(
+  "renewExitQrBtn"
+).addEventListener(
+  "click",
+  async () => {
+
+    const newToken =
+      randomToken();
+
+
+    await updateDoc(
+
+      doc(
+        db,
+        "configuracion",
+        "qr"
+      ),
+
+      {
+
+        salidaToken:
+          newToken,
+
+        actualizadoEn:
+          serverTimestamp()
+
+      }
+
+    );
+
+
+    drawQr(
+      "exitQr",
+      `HUERTA|SALIDA|${newToken}`
+    );
+
+
+    document.getElementById(
+      "exitQrStatus"
+    ).textContent =
+      "QR renovado correctamente.";
+
+  }
+);
+
+
+// ======================================================
+// GENERAR QR VISUAL
+// ======================================================
+
+function drawQr(
+  elementId,
+  text
+) {
+
+  const element =
+    document.getElementById(
+      elementId
+    );
+
+
+  element.innerHTML = "";
+
+
+  new QRCode(
+    element,
+    {
+
+      text,
+
+      width: 210,
+
+      height: 210,
+
+      colorDark:
+        "#173f2b",
+
+      colorLight:
+        "#ffffff",
+
+      correctLevel:
+        QRCode.CorrectLevel.H
+
+    }
+  );
+
+}
+
+
+// ======================================================
+// TOKEN ALEATORIO
+// ======================================================
+
+function randomToken() {
+
+  const array =
+    new Uint32Array(4);
+
+
+  crypto.getRandomValues(
+    array
+  );
+
+
+  return Array
+    .from(array)
+    .map(
+      number =>
+        number.toString(36)
+    )
+    .join("")
+    .toUpperCase();
+
+}
+
+
+// ======================================================
+// ACTUALIZAR ADMIN
+// ======================================================
+
+document.getElementById(
+  "refreshAdminBtn"
+).addEventListener(
+  "click",
+  loadAdmin
+);
+
+
+// ======================================================
+// SEGURIDAD HTML
+// ======================================================
+
+function escapeHtml(value) {
+
+  return String(value)
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
 </script>
 
 </body>
