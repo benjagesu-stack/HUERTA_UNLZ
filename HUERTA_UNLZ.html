@@ -1,0 +1,2955 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Huerta Presentismo</title>
+
+<!-- Librería para generar QR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+:root{
+    --verde-oscuro:#173f2b;
+    --verde:#28734a;
+    --verde-claro:#dff1e5;
+    --verde-suave:#eef8f1;
+    --tierra:#9a6842;
+    --tierra-claro:#f3e7dc;
+    --blanco:#ffffff;
+    --fondo:#f4f7f3;
+    --texto:#203027;
+    --gris:#718078;
+    --rojo:#c74b4b;
+    --amarillo:#d49a35;
+    --sombra:0 12px 35px rgba(23,63,43,.10);
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:var(--fondo);
+    color:var(--texto);
+}
+
+button{
+    border:0;
+    cursor:pointer;
+}
+
+.hidden{
+    display:none!important;
+}
+
+/* LOGIN */
+
+#loginScreen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:25px;
+    background:
+        radial-gradient(circle at top left,#dff1e5,transparent 35%),
+        var(--fondo);
+}
+
+.login-container{
+    width:100%;
+    max-width:1050px;
+    min-height:620px;
+    background:white;
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:var(--sombra);
+    display:grid;
+    grid-template-columns:1fr 1fr;
+}
+
+.login-brand{
+    background:linear-gradient(145deg,#173f2b,#28734a);
+    color:white;
+    padding:55px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+}
+
+.login-brand:after{
+    content:"🌱";
+    position:absolute;
+    font-size:240px;
+    opacity:.07;
+    right:-30px;
+    bottom:-50px;
+}
+
+.logo-circle{
+    width:70px;
+    height:70px;
+    border-radius:22px;
+    background:rgba(255,255,255,.15);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:35px;
+    margin-bottom:25px;
+}
+
+.login-brand h1{
+    font-size:42px;
+    margin-bottom:15px;
+}
+
+.login-brand p{
+    font-size:17px;
+    line-height:1.6;
+    opacity:.9;
+    max-width:430px;
+}
+
+.features{
+    margin-top:35px;
+    display:grid;
+    gap:13px;
+}
+
+.feature{
+    display:flex;
+    gap:12px;
+    align-items:center;
+}
+
+.feature-icon{
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    background:rgba(255,255,255,.12);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.login-box{
+    padding:55px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+
+.login-box h2{
+    font-size:30px;
+    margin-bottom:8px;
+}
+
+.subtitle{
+    color:var(--gris);
+    margin-bottom:30px;
+}
+
+.tabs{
+    display:flex;
+    background:#f1f4f1;
+    padding:5px;
+    border-radius:13px;
+    margin-bottom:25px;
+}
+
+.tabs button{
+    flex:1;
+    padding:12px;
+    border-radius:9px;
+    background:transparent;
+    color:var(--gris);
+    font-weight:bold;
+}
+
+.tabs button.active{
+    background:white;
+    color:var(--verde);
+    box-shadow:0 3px 10px rgba(0,0,0,.06);
+}
+
+.form-group{
+    margin-bottom:17px;
+}
+
+.form-group label{
+    display:block;
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.form-group input{
+    width:100%;
+    padding:14px 15px;
+    border:1px solid #dce5df;
+    border-radius:12px;
+    outline:none;
+    font-size:15px;
+}
+
+.form-group input:focus{
+    border-color:var(--verde);
+}
+
+.primary-btn{
+    width:100%;
+    padding:15px;
+    border-radius:13px;
+    background:var(--verde);
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    transition:.2s;
+}
+
+.primary-btn:hover{
+    background:var(--verde-oscuro);
+    transform:translateY(-1px);
+}
+
+.secondary-btn{
+    padding:12px 18px;
+    border-radius:11px;
+    background:var(--verde-claro);
+    color:var(--verde-oscuro);
+    font-weight:bold;
+}
+
+.danger-btn{
+    padding:11px 15px;
+    border-radius:10px;
+    background:#fde7e7;
+    color:var(--rojo);
+    font-weight:bold;
+}
+
+/* APP */
+
+#app{
+    min-height:100vh;
+}
+
+.topbar{
+    height:75px;
+    background:white;
+    border-bottom:1px solid #e7ece8;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 35px;
+    position:sticky;
+    top:0;
+    z-index:20;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-weight:bold;
+    font-size:21px;
+}
+
+.brand-logo{
+    width:42px;
+    height:42px;
+    border-radius:13px;
+    background:var(--verde);
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.user-top{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.user-mini{
+    width:39px;
+    height:39px;
+    border-radius:50%;
+    background:var(--verde-claro);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    color:var(--verde);
+}
+
+.logout{
+    padding:10px 15px;
+    background:#f3f5f3;
+    border-radius:10px;
+    color:var(--gris);
+}
+
+.container{
+    max-width:1250px;
+    margin:auto;
+    padding:35px 25px;
+}
+
+.welcome{
+    background:linear-gradient(135deg,var(--verde-oscuro),var(--verde));
+    color:white;
+    border-radius:24px;
+    padding:30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:25px;
+}
+
+.welcome h1{
+    font-size:29px;
+    margin-bottom:8px;
+}
+
+.clock{
+    text-align:right;
+}
+
+.clock strong{
+    display:block;
+    font-size:28px;
+}
+
+.clock span{
+    opacity:.8;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:25px;
+}
+
+.card{
+    background:white;
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 5px 20px rgba(23,63,43,.05);
+    border:1px solid #edf1ee;
+}
+
+.card-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.card-title h2{
+    font-size:20px;
+}
+
+.status{
+    padding:8px 12px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.status.green{
+    background:var(--verde-claro);
+    color:var(--verde);
+}
+
+.status.yellow{
+    background:#fff4da;
+    color:#a36d0c;
+}
+
+.status.red{
+    background:#fde7e7;
+    color:var(--rojo);
+}
+
+.attendance{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.time-box{
+    background:var(--verde-suave);
+    border-radius:16px;
+    padding:20px;
+}
+
+.time-box span{
+    display:block;
+    color:var(--gris);
+    font-size:13px;
+    margin-bottom:7px;
+}
+
+.time-box strong{
+    font-size:25px;
+}
+
+.actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.action-btn{
+    padding:15px;
+    border-radius:13px;
+    font-weight:bold;
+    font-size:15px;
+}
+
+.entry{
+    background:var(--verde);
+    color:white;
+}
+
+.exit{
+    background:var(--tierra-claro);
+    color:var(--tierra);
+}
+
+.action-btn:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+}
+
+.profile{
+    display:flex;
+    align-items:center;
+    gap:17px;
+}
+
+.profile-photo{
+    width:78px;
+    height:78px;
+    border-radius:22px;
+    object-fit:cover;
+    background:var(--verde-claro);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+}
+
+.profile h3{
+    margin-bottom:5px;
+}
+
+.profile p{
+    color:var(--gris);
+    font-size:14px;
+}
+
+.history{
+    margin-top:25px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:14px 10px;
+    text-align:left;
+    border-bottom:1px solid #edf0ed;
+    font-size:14px;
+}
+
+th{
+    color:var(--gris);
+    font-size:12px;
+    text-transform:uppercase;
+}
+
+.admin-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:17px;
+    margin-bottom:25px;
+}
+
+.stat{
+    background:white;
+    border-radius:18px;
+    padding:20px;
+    border:1px solid #edf1ee;
+}
+
+.stat span{
+    color:var(--gris);
+    font-size:13px;
+}
+
+.stat strong{
+    display:block;
+    font-size:28px;
+    margin-top:7px;
+}
+
+.admin-toolbar{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+.admin-toolbar input,
+.admin-toolbar select{
+    padding:12px 14px;
+    border:1px solid #dce5df;
+    border-radius:10px;
+}
+
+.qr-area{
+    text-align:center;
+}
+
+.qr-box{
+    min-height:260px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:15px 0;
+}
+
+.qr-box img{
+    border-radius:10px;
+}
+
+.qr-code-text{
+    background:#f5f7f5;
+    padding:10px;
+    border-radius:10px;
+    font-family:monospace;
+    font-size:12px;
+    word-break:break-all;
+    color:var(--gris);
+}
+
+.admin-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:25px;
+    overflow:auto;
+}
+
+.admin-tabs button{
+    padding:12px 17px;
+    background:white;
+    border-radius:11px;
+    color:var(--gris);
+    font-weight:bold;
+}
+
+.admin-tabs button.active{
+    background:var(--verde);
+    color:white;
+}
+
+.student-row{
+    cursor:pointer;
+}
+
+.student-row:hover{
+    background:#f8faf8;
+}
+
+.student-avatar{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    object-fit:cover;
+    vertical-align:middle;
+    margin-right:8px;
+}
+
+.empty{
+    text-align:center;
+    padding:35px;
+    color:var(--gris);
+}
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:100;
+}
+
+.modal-content{
+    background:white;
+    width:100%;
+    max-width:600px;
+    max-height:90vh;
+    overflow:auto;
+    border-radius:24px;
+    padding:30px;
+}
+
+.modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.close{
+    width:35px;
+    height:35px;
+    border-radius:50%;
+    background:#f1f3f1;
+    font-size:20px;
+}
+
+.detail-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:20px;
+}
+
+.detail{
+    background:var(--verde-suave);
+    padding:15px;
+    border-radius:12px;
+}
+
+.detail span{
+    color:var(--gris);
+    display:block;
+    font-size:12px;
+    margin-bottom:5px;
+}
+
+#photoInput{
+    display:none;
+}
+
+.photo-upload{
+    margin-top:12px;
+    display:inline-block;
+    padding:10px 15px;
+    border-radius:10px;
+    background:var(--verde-claro);
+    color:var(--verde);
+    font-weight:bold;
+    cursor:pointer;
+}
+
+@media(max-width:850px){
+    .login-container{
+        grid-template-columns:1fr;
+    }
+
+    .login-brand{
+        display:none;
+    }
+
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+    .admin-grid{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:600px){
+    .topbar{
+        padding:0 15px;
+    }
+
+    .topbar .brand span{
+        display:none;
+    }
+
+    .container{
+        padding:20px 15px;
+    }
+
+    .welcome{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:20px;
+    }
+
+    .clock{
+        text-align:left;
+    }
+
+    .attendance,
+    .actions,
+    .detail-grid{
+        grid-template-columns:1fr;
+    }
+
+    .admin-grid{
+        grid-template-columns:1fr 1fr;
+    }
+
+    table{
+        min-width:650px;
+    }
+
+    .table-scroll{
+        overflow-x:auto;
+    }
+
+    .login-box{
+        padding:30px 22px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= LOGIN ================= -->
+
+<section id="loginScreen">
+
+<div class="login-container">
+
+    <div class="login-brand">
+
+        <div class="logo-circle">🌱</div>
+
+        <h1>Huerta</h1>
+
+        <p>
+            Sistema de presentismo para registrar de forma sencilla
+            la entrada y salida de cada alumno.
+        </p>
+
+        <div class="features">
+
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <span>Registro desde el celular</span>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">🔳</div>
+                <span>Entrada y salida mediante QR</span>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">👥</div>
+                <span>Perfiles individuales</span>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <span>Panel completo para administración</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="login-box">
+
+        <h2 id="authTitle">Iniciar sesión</h2>
+
+        <p class="subtitle">
+            Accedé a tu cuenta de la huerta.
+        </p>
+
+        <div class="tabs">
+
+            <button id="loginTab"
+                    class="active"
+                    onclick="showLogin()">
+                Ingresar
+            </button>
+
+            <button id="registerTab"
+                    onclick="showRegister()">
+                Registrarme
+            </button>
+
+        </div>
+
+        <!-- LOGIN -->
+
+        <form id="loginForm">
+
+            <div class="form-group">
+                <label>Gmail</label>
+                <input
+                    id="loginEmail"
+                    type="email"
+                    placeholder="tu@gmail.com"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input
+                    id="loginPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                >
+            </div>
+
+            <button class="primary-btn">
+                Ingresar
+            </button>
+
+        </form>
+
+        <!-- REGISTER -->
+
+        <form id="registerForm" class="hidden">
+
+            <div class="form-group">
+                <label>Nombre y apellido</label>
+                <input
+                    id="registerName"
+                    type="text"
+                    placeholder="Ej: Juan Pérez"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Gmail</label>
+                <input
+                    id="registerEmail"
+                    type="email"
+                    placeholder="juan@gmail.com"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input
+                    id="registerPassword"
+                    type="password"
+                    placeholder="Mínimo 4 caracteres"
+                    required
+                >
+            </div>
+
+            <button class="primary-btn">
+                Crear mi cuenta
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+</section>
+
+
+<!-- ================= APP ================= -->
+
+<section id="app" class="hidden">
+
+<header class="topbar">
+
+    <div class="brand">
+
+        <div class="brand-logo">🌱</div>
+
+        <span>Huerta Presentismo</span>
+
+    </div>
+
+    <div class="user-top">
+
+        <div class="user-mini" id="topAvatar">
+            👤
+        </div>
+
+        <span id="topUserName">Usuario</span>
+
+        <button class="logout" onclick="logout()">
+            Salir
+        </button>
+
+    </div>
+
+</header>
+
+
+<!-- ================= ALUMNO ================= -->
+
+<main id="studentPanel" class="container hidden">
+
+    <div class="welcome">
+
+        <div>
+            <h1>Hola, <span id="studentWelcome">Alumno</span> 👋</h1>
+
+            <p>
+                Registrá tu entrada y salida cuando estés en la huerta.
+            </p>
+        </div>
+
+        <div class="clock">
+
+            <strong id="clock">00:00:00</strong>
+
+            <span id="dateText">
+                Cargando fecha...
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="grid">
+
+        <!-- PRESENTISMO -->
+
+        <div>
+
+            <div class="card">
+
+                <div class="card-title">
+
+                    <h2>📋 Presentismo de hoy</h2>
+
+                    <span
+                        id="todayStatus"
+                        class="status yellow">
+                        Sin registrar
+                    </span>
+
+                </div>
+
+                <div class="attendance">
+
+                    <div class="time-box">
+
+                        <span>Entrada</span>
+
+                        <strong id="entryTime">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="time-box">
+
+                        <span>Salida</span>
+
+                        <strong id="exitTime">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <div class="actions">
+
+                    <button
+                        id="entryButton"
+                        class="action-btn entry"
+                        onclick="requestQR('entrada')">
+                        🔳 Marcar entrada
+                    </button>
+
+                    <button
+                        id="exitButton"
+                        class="action-btn exit"
+                        onclick="requestQR('salida')"
+                        disabled>
+                        🔳 Marcar salida
+                    </button>
+
+                </div>
+
+                <p style="margin-top:15px;color:var(--gris);font-size:13px;">
+                    Escaneá el QR que se encuentra en la entrada de la huerta.
+                </p>
+
+            </div>
+
+
+            <!-- PERFIL -->
+
+            <div class="card" style="margin-top:25px;">
+
+                <div class="card-title">
+                    <h2>👤 Mi perfil</h2>
+                </div>
+
+                <div class="profile">
+
+                    <div id="studentPhoto"
+                         class="profile-photo">
+                        👤
+                    </div>
+
+                    <div>
+
+                        <h3 id="profileName">
+                            Alumno
+                        </h3>
+
+                        <p id="profileEmail">
+                            correo@gmail.com
+                        </p>
+
+                        <label
+                            for="photoInput"
+                            class="photo-upload">
+                            📷 Cambiar foto
+                        </label>
+
+                        <input
+                            id="photoInput"
+                            type="file"
+                            accept="image/*"
+                            onchange="changePhoto(event)"
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- QR INFO -->
+
+        <div>
+
+            <div class="card">
+
+                <div class="card-title">
+                    <h2>🔳 ¿Cómo marcar?</h2>
+                </div>
+
+                <div style="line-height:1.7;color:var(--gris);">
+
+                    <p>
+                        <b>1.</b> Dirigite a la entrada de la huerta.
+                    </p>
+
+                    <p>
+                        <b>2.</b> Tocá "Marcar entrada".
+                    </p>
+
+                    <p>
+                        <b>3.</b> Escaneá el QR del administrador.
+                    </p>
+
+                    <p>
+                        <b>4.</b> Tu horario quedará registrado.
+                    </p>
+
+                    <br>
+
+                    <p>
+                        Para salir repetí el proceso utilizando
+                        el QR de salida.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- HISTORIAL -->
+
+    <div class="card history">
+
+        <div class="card-title">
+            <h2>📅 Mi historial</h2>
+        </div>
+
+        <div class="table-scroll">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Entrada</th>
+                        <th>Salida</th>
+                        <th>Horas</th>
+                    </tr>
+                </thead>
+
+                <tbody id="studentHistory"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- ================= ADMIN ================= -->
+
+<main id="adminPanel" class="container hidden">
+
+    <div class="welcome">
+
+        <div>
+
+            <h1>Panel de administración 🔐</h1>
+
+            <p>
+                Controlá el presentismo y los alumnos de la huerta.
+            </p>
+
+        </div>
+
+        <div class="clock">
+
+            <strong id="adminClock">00:00:00</strong>
+
+            <span id="adminDate">
+                —
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="admin-tabs">
+
+        <button
+            id="tabDashboard"
+            class="active"
+            onclick="showAdminSection('dashboard')">
+            📊 Presentismo
+        </button>
+
+        <button
+            id="tabQR"
+            onclick="showAdminSection('qr')">
+            🔳 QR
+        </button>
+
+        <button
+            id="tabStudents"
+            onclick="showAdminSection('students')">
+            👥 Alumnos
+        </button>
+
+    </div>
+
+
+    <!-- DASHBOARD -->
+
+    <section id="adminDashboard">
+
+        <div class="admin-grid">
+
+            <div class="stat">
+                <span>Total alumnos</span>
+                <strong id="statStudents">0</strong>
+            </div>
+
+            <div class="stat">
+                <span>Presentes hoy</span>
+                <strong id="statPresent">0</strong>
+            </div>
+
+            <div class="stat">
+                <span>Con salida</span>
+                <strong id="statFinished">0</strong>
+            </div>
+
+            <div class="stat">
+                <span>Sin salida</span>
+                <strong id="statOpen">0</strong>
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h2>📋 Presentismo de hoy</h2>
+
+                <button
+                    class="secondary-btn"
+                    onclick="renderAdmin()">
+                    🔄 Actualizar
+                </button>
+
+            </div>
+
+            <div class="admin-toolbar">
+
+                <input
+                    id="adminSearch"
+                    type="text"
+                    placeholder="Buscar alumno..."
+                    oninput="renderAdminTable()"
+                >
+
+                <select
+                    id="adminStatus"
+                    onchange="renderAdminTable()">
+
+                    <option value="todos">
+                        Todos
+                    </option>
+
+                    <option value="presente">
+                        Presentes
+                    </option>
+
+                    <option value="salida">
+                        Con salida
+                    </option>
+
+                    <option value="pendiente">
+                        Sin salida
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="table-scroll">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Alumno</th>
+                            <th>Gmail</th>
+                            <th>Entrada</th>
+                            <th>Salida</th>
+                            <th>Estado</th>
+                            <th>Horas</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="adminTable"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- QR -->
+
+    <section id="adminQR" class="hidden">
+
+        <div class="grid">
+
+            <div class="card qr-area">
+
+                <div class="card-title">
+
+                    <h2>🔳 QR de entrada</h2>
+
+                    <span
+                        id="entryQRStatus"
+                        class="status green">
+                        Activo
+                    </span>
+
+                </div>
+
+                <div
+                    id="entryQR"
+                    class="qr-box">
+                </div>
+
+                <div
+                    id="entryQRText"
+                    class="qr-code-text">
+                </div>
+
+                <button
+                    class="primary-btn"
+                    onclick="renewQR('entrada')">
+                    🔄 Renovar QR de entrada
+                </button>
+
+            </div>
+
+
+            <div class="card qr-area">
+
+                <div class="card-title">
+
+                    <h2>🔳 QR de salida</h2>
+
+                    <span
+                        id="exitQRStatus"
+                        class="status green">
+                        Activo
+                    </span>
+
+                </div>
+
+                <div
+                    id="exitQR"
+                    class="qr-box">
+                </div>
+
+                <div
+                    id="exitQRText"
+                    class="qr-code-text">
+                </div>
+
+                <button
+                    class="primary-btn"
+                    onclick="renewQR('salida')">
+                    🔄 Renovar QR de salida
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="card" style="margin-top:25px;">
+
+            <h3 style="margin-bottom:10px;">
+                🔐 Seguridad del QR
+            </h3>
+
+            <p style="color:var(--gris);line-height:1.6;">
+                Cada vez que el administrador renueva un QR,
+                el código anterior deja de ser válido.
+                De esta manera se puede cambiar el código
+                cuando sea necesario.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- ALUMNOS -->
+
+    <section id="adminStudents" class="hidden">
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h2>👥 Alumnos registrados</h2>
+
+                <span id="studentCount"
+                      class="status green">
+                    0 alumnos
+                </span>
+
+            </div>
+
+            <div class="table-scroll">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Alumno</th>
+                            <th>Gmail</th>
+                            <th>Asistencias</th>
+                            <th>Última entrada</th>
+                            <th>Acción</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="studentsTable"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+</section>
+
+
+<!-- MODAL QR -->
+
+<div id="qrModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-head">
+
+            <h2>🔳 Escanear QR</h2>
+
+            <button
+                class="close"
+                onclick="closeQRModal()">
+                ×
+            </button>
+
+        </div>
+
+        <p style="color:var(--gris);line-height:1.6;">
+
+            En esta versión de demostración,
+            ingresá el código que aparece debajo
+            del QR del administrador.
+
+        </p>
+
+        <div class="form-group" style="margin-top:20px;">
+
+            <label>
+                Código QR
+            </label>
+
+            <input
+                id="qrInput"
+                type="text"
+                placeholder="Pegá o escribí el código"
+            >
+
+        </div>
+
+        <button
+            class="primary-btn"
+            onclick="validateQR()">
+            Confirmar
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL ALUMNO -->
+
+<div id="studentModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-head">
+
+            <h2>Información del alumno</h2>
+
+            <button
+                class="close"
+                onclick="closeStudentModal()">
+                ×
+            </button>
+
+        </div>
+
+        <div id="studentDetails"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   DATOS
+========================================= */
+
+const ADMIN_EMAIL = "admin@huerta.com";
+const ADMIN_PASSWORD = "admin123";
+
+let currentUser = null;
+let pendingQRAction = null;
+
+
+/* =========================================
+   BASE LOCAL
+========================================= */
+
+function getUsers(){
+
+    return JSON.parse(
+        localStorage.getItem("huerta_users") || "[]"
+    );
+
+}
+
+function saveUsers(users){
+
+    localStorage.setItem(
+        "huerta_users",
+        JSON.stringify(users)
+    );
+
+}
+
+function getAttendance(){
+
+    return JSON.parse(
+        localStorage.getItem("huerta_attendance") || "[]"
+    );
+
+}
+
+function saveAttendance(data){
+
+    localStorage.setItem(
+        "huerta_attendance",
+        JSON.stringify(data)
+    );
+
+}
+
+function getQR(){
+
+    return JSON.parse(
+        localStorage.getItem("huerta_qr") ||
+        '{"entrada":"","salida":""}'
+    );
+
+}
+
+function saveQR(data){
+
+    localStorage.setItem(
+        "huerta_qr",
+        JSON.stringify(data)
+    );
+
+}
+
+
+/* =========================================
+   FECHA / HORA
+========================================= */
+
+function today(){
+
+    const d = new Date();
+
+    return d.toISOString().split("T")[0];
+
+}
+
+function timeNow(){
+
+    return new Date().toLocaleTimeString(
+        "es-AR",
+        {
+            hour:"2-digit",
+            minute:"2-digit",
+            second:"2-digit"
+        }
+    );
+
+}
+
+function shortTime(){
+
+    return new Date().toLocaleTimeString(
+        "es-AR",
+        {
+            hour:"2-digit",
+            minute:"2-digit"
+        }
+    );
+
+}
+
+function formatDate(date){
+
+    return new Date(
+        date + "T12:00:00"
+    ).toLocaleDateString(
+        "es-AR",
+        {
+            day:"2-digit",
+            month:"2-digit",
+            year:"numeric"
+        }
+    );
+
+}
+
+function updateClock(){
+
+    const now = new Date();
+
+    const clock = document.getElementById("clock");
+    const adminClock = document.getElementById("adminClock");
+
+    if(clock)
+        clock.textContent = timeNow();
+
+    if(adminClock)
+        adminClock.textContent = timeNow();
+
+    const date = now.toLocaleDateString(
+        "es-AR",
+        {
+            weekday:"long",
+            day:"numeric",
+            month:"long",
+            year:"numeric"
+        }
+    );
+
+    const dateText =
+        document.getElementById("dateText");
+
+    const adminDate =
+        document.getElementById("adminDate");
+
+    if(dateText)
+        dateText.textContent =
+            date.charAt(0).toUpperCase()+date.slice(1);
+
+    if(adminDate)
+        adminDate.textContent =
+            date.charAt(0).toUpperCase()+date.slice(1);
+
+}
+
+setInterval(updateClock,1000);
+
+
+/* =========================================
+   LOGIN / REGISTRO
+========================================= */
+
+function showLogin(){
+
+    document.getElementById("loginForm")
+        .classList.remove("hidden");
+
+    document.getElementById("registerForm")
+        .classList.add("hidden");
+
+    document.getElementById("loginTab")
+        .classList.add("active");
+
+    document.getElementById("registerTab")
+        .classList.remove("active");
+
+    document.getElementById("authTitle")
+        .textContent="Iniciar sesión";
+
+}
+
+function showRegister(){
+
+    document.getElementById("loginForm")
+        .classList.add("hidden");
+
+    document.getElementById("registerForm")
+        .classList.remove("hidden");
+
+    document.getElementById("loginTab")
+        .classList.remove("active");
+
+    document.getElementById("registerTab")
+        .classList.add("active");
+
+    document.getElementById("authTitle")
+        .textContent="Crear cuenta";
+
+}
+
+
+/* LOGIN */
+
+document.getElementById("loginForm")
+.addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    const email =
+        document.getElementById("loginEmail")
+        .value.trim()
+        .toLowerCase();
+
+    const password =
+        document.getElementById("loginPassword")
+        .value;
+
+    if(
+        email===ADMIN_EMAIL &&
+        password===ADMIN_PASSWORD
+    ){
+
+        currentUser={
+            id:"admin",
+            name:"Administrador",
+            email:ADMIN_EMAIL,
+            role:"admin"
+        };
+
+        openApp();
+
+        return;
+    }
+
+    const user = getUsers().find(
+        u =>
+        u.email===email &&
+        u.password===password
+    );
+
+    if(!user){
+
+        alert("Gmail o contraseña incorrectos.");
+        return;
+
+    }
+
+    currentUser=user;
+
+    openApp();
+
+});
+
+
+/* REGISTRO */
+
+document.getElementById("registerForm")
+.addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    const name =
+        document.getElementById("registerName")
+        .value.trim();
+
+    const email =
+        document.getElementById("registerEmail")
+        .value.trim()
+        .toLowerCase();
+
+    const password =
+        document.getElementById("registerPassword")
+        .value;
+
+    if(password.length<4){
+
+        alert("La contraseña debe tener al menos 4 caracteres.");
+        return;
+
+    }
+
+    if(!email.endsWith("@gmail.com")){
+
+        alert("Para este registro utilizá una dirección @gmail.com.");
+        return;
+
+    }
+
+    const users=getUsers();
+
+    if(
+        users.some(
+            u=>u.email===email
+        )
+    ){
+
+        alert("Ese Gmail ya está registrado.");
+        return;
+
+    }
+
+    const user={
+
+        id:"user_"+Date.now(),
+
+        name:name,
+
+        email:email,
+
+        password:password,
+
+        role:"student",
+
+        photo:"",
+
+        createdAt:new Date().toISOString()
+
+    };
+
+    users.push(user);
+
+    saveUsers(users);
+
+    alert(
+        "¡Cuenta creada correctamente! Ahora podés ingresar."
+    );
+
+    document.getElementById("registerForm").reset();
+
+    showLogin();
+
+});
+
+
+/* =========================================
+   ABRIR APP
+========================================= */
+
+function openApp(){
+
+    document
+        .getElementById("loginScreen")
+        .classList.add("hidden");
+
+    document
+        .getElementById("app")
+        .classList.remove("hidden");
+
+    document.getElementById("topUserName")
+        .textContent=currentUser.name;
+
+    if(currentUser.role==="admin"){
+
+        document
+            .getElementById("adminPanel")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("studentPanel")
+            .classList.add("hidden");
+
+        renderAdmin();
+
+        renderQR();
+
+    }else{
+
+        document
+            .getElementById("studentPanel")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("adminPanel")
+            .classList.add("hidden");
+
+        loadStudent();
+
+    }
+
+    updateClock();
+
+}
+
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+function logout(){
+
+    currentUser=null;
+
+    document
+        .getElementById("app")
+        .classList.add("hidden");
+
+    document
+        .getElementById("loginScreen")
+        .classList.remove("hidden");
+
+    document
+        .getElementById("loginForm")
+        .reset();
+
+}
+
+
+/* =========================================
+   ALUMNO
+========================================= */
+
+function loadStudent(){
+
+    document.getElementById("studentWelcome")
+        .textContent=currentUser.name;
+
+    document.getElementById("profileName")
+        .textContent=currentUser.name;
+
+    document.getElementById("profileEmail")
+        .textContent=currentUser.email;
+
+    setPhoto(
+        currentUser.photo,
+        "studentPhoto"
+    );
+
+    setPhoto(
+        currentUser.photo,
+        "topAvatar"
+    );
+
+    renderToday();
+
+    renderStudentHistory();
+
+}
+
+
+function setPhoto(photo,id){
+
+    const element=document.getElementById(id);
+
+    if(!element)
+        return;
+
+    if(photo){
+
+        element.innerHTML=
+            `<img src="${photo}"
+             style="width:100%;height:100%;
+             object-fit:cover;border-radius:inherit;">`;
+
+    }else{
+
+        element.textContent="👤";
+
+    }
+
+}
+
+
+/* CAMBIAR FOTO */
+
+function changePhoto(event){
+
+    const file=event.target.files[0];
+
+    if(!file)
+        return;
+
+    const reader=new FileReader();
+
+    reader.onload=function(){
+
+        const users=getUsers();
+
+        const index=users.findIndex(
+            u=>u.id===currentUser.id
+        );
+
+        if(index!==-1){
+
+            users[index].photo=reader.result;
+
+            currentUser.photo=reader.result;
+
+            saveUsers(users);
+
+            setPhoto(
+                reader.result,
+                "studentPhoto"
+            );
+
+            setPhoto(
+                reader.result,
+                "topAvatar"
+            );
+
+        }
+
+    };
+
+    reader.readAsDataURL(file);
+
+}
+
+
+/* =========================================
+   PRESENTISMO DEL DÍA
+========================================= */
+
+function getTodayRecord(){
+
+    return getAttendance().find(
+        r =>
+        r.userId===currentUser.id &&
+        r.date===today()
+    );
+
+}
+
+
+function renderToday(){
+
+    const record=getTodayRecord();
+
+    const entry=document.getElementById("entryTime");
+    const exit=document.getElementById("exitTime");
+
+    const entryButton=
+        document.getElementById("entryButton");
+
+    const exitButton=
+        document.getElementById("exitButton");
+
+    const status=
+        document.getElementById("todayStatus");
+
+    if(!record){
+
+        entry.textContent="—";
+        exit.textContent="—";
+
+        entryButton.disabled=false;
+        exitButton.disabled=true;
+
+        status.textContent="Sin registrar";
+        status.className="status yellow";
+
+        return;
+
+    }
+
+    entry.textContent=record.entry || "—";
+    exit.textContent=record.exit || "—";
+
+    entryButton.disabled=!!record.entry;
+    exitButton.disabled=!record.entry || !!record.exit;
+
+    if(record.exit){
+
+        status.textContent="Jornada completa";
+        status.className="status green";
+
+    }else{
+
+        status.textContent="Presente";
+        status.className="status yellow";
+
+    }
+
+}
+
+
+/* =========================================
+   QR
+========================================= */
+
+function generateToken(){
+
+    return (
+        Math.random()
+        .toString(36)
+        .substring(2,8)
+        .toUpperCase()
+        +
+        Date.now()
+        .toString(36)
+        .toUpperCase()
+    );
+
+}
+
+
+function initializeQR(){
+
+    const qr=getQR();
+
+    if(!qr.entrada)
+        qr.entrada=generateToken();
+
+    if(!qr.salida)
+        qr.salida=generateToken();
+
+    saveQR(qr);
+
+}
+
+initializeQR();
+
+
+function requestQR(type){
+
+    pendingQRAction=type;
+
+    document.getElementById("qrInput").value="";
+
+    document
+        .getElementById("qrModal")
+        .classList.remove("hidden");
+
+}
+
+
+function closeQRModal(){
+
+    document
+        .getElementById("qrModal")
+        .classList.add("hidden");
+
+}
+
+
+function validateQR(){
+
+    const value=
+        document.getElementById("qrInput")
+        .value
+        .trim()
+        .toUpperCase();
+
+    const qr=getQR();
+
+    if(value !== qr[pendingQRAction]){
+
+        alert(
+            "QR incorrecto o vencido. Pedile al administrador que genere uno nuevo."
+        );
+
+        return;
+
+    }
+
+    if(pendingQRAction==="entrada")
+        registerEntry();
+
+    if(pendingQRAction==="salida")
+        registerExit();
+
+    closeQRModal();
+
+}
+
+
+/* ENTRADA */
+
+function registerEntry(){
+
+    const data=getAttendance();
+
+    const existing=data.find(
+        r =>
+        r.userId===currentUser.id &&
+        r.date===today()
+    );
+
+    if(existing){
+
+        alert("Ya registraste tu entrada.");
+        return;
+
+    }
+
+    data.push({
+
+        id:"attendance_"+Date.now(),
+
+        userId:currentUser.id,
+
+        name:currentUser.name,
+
+        email:currentUser.email,
+
+        date:today(),
+
+        entry:shortTime(),
+
+        exit:""
+
+    });
+
+    saveAttendance(data);
+
+    renderToday();
+
+    renderStudentHistory();
+
+    alert(
+        "✅ Entrada registrada a las "+
+        shortTime()
+    );
+
+}
+
+
+/* SALIDA */
+
+function registerExit(){
+
+    const data=getAttendance();
+
+    const index=data.findIndex(
+        r =>
+        r.userId===currentUser.id &&
+        r.date===today()
+    );
+
+    if(index===-1){
+
+        alert("Primero tenés que registrar la entrada.");
+        return;
+
+    }
+
+    if(data[index].exit){
+
+        alert("La salida ya fue registrada.");
+        return;
+
+    }
+
+    data[index].exit=shortTime();
+
+    saveAttendance(data);
+
+    renderToday();
+
+    renderStudentHistory();
+
+    alert(
+        "✅ Salida registrada a las "+
+        shortTime()
+    );
+
+}
+
+
+/* =========================================
+   HISTORIAL ALUMNO
+========================================= */
+
+function calculateHours(entry,exit){
+
+    if(!entry || !exit)
+        return "—";
+
+    const e=entry.split(":").map(Number);
+    const s=exit.split(":").map(Number);
+
+    let minutesE=e[0]*60+e[1];
+    let minutesS=s[0]*60+s[1];
+
+    if(minutesS<minutesE)
+        minutesS+=24*60;
+
+    const diff=minutesS-minutesE;
+
+    const h=Math.floor(diff/60);
+    const m=diff%60;
+
+    return `${h}h ${String(m).padStart(2,"0")}m`;
+
+}
+
+
+function renderStudentHistory(){
+
+    const tbody=
+        document.getElementById("studentHistory");
+
+    if(!tbody)
+        return;
+
+    const records=
+        getAttendance()
+        .filter(
+            r=>r.userId===currentUser.id
+        )
+        .sort(
+            (a,b)=>b.date.localeCompare(a.date)
+        );
+
+    if(!records.length){
+
+        tbody.innerHTML=
+            `<tr>
+                <td colspan="4" class="empty">
+                    Todavía no tenés registros.
+                </td>
+            </tr>`;
+
+        return;
+
+    }
+
+    tbody.innerHTML=records.map(r=>`
+
+        <tr>
+
+            <td>${formatDate(r.date)}</td>
+
+            <td>${r.entry || "—"}</td>
+
+            <td>${r.exit || "—"}</td>
+
+            <td>
+                ${calculateHours(r.entry,r.exit)}
+            </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+
+/* =========================================
+   ADMIN
+========================================= */
+
+function renderAdmin(){
+
+    const users=getUsers();
+
+    const records=getAttendance();
+
+    const todayRecords=
+        records.filter(
+            r=>r.date===today()
+        );
+
+    document.getElementById("statStudents")
+        .textContent=users.length;
+
+    document.getElementById("statPresent")
+        .textContent=todayRecords.length;
+
+    document.getElementById("statFinished")
+        .textContent=
+        todayRecords.filter(r=>r.exit).length;
+
+    document.getElementById("statOpen")
+        .textContent=
+        todayRecords.filter(r=>!r.exit).length;
+
+    renderAdminTable();
+
+    renderStudents();
+
+}
+
+
+function renderAdminTable(){
+
+    const tbody=
+        document.getElementById("adminTable");
+
+    const search=
+        document.getElementById("adminSearch")
+        ?.value
+        .toLowerCase() || "";
+
+    const filter=
+        document.getElementById("adminStatus")
+        ?.value || "todos";
+
+    let records=
+        getAttendance()
+        .filter(
+            r=>r.date===today()
+        );
+
+    records=records.filter(r=>{
+
+        const matchName=
+            r.name.toLowerCase().includes(search);
+
+        const matchStatus=
+            filter==="todos" ||
+            (filter==="presente" && !r.exit) ||
+            (filter==="salida" && !!r.exit) ||
+            (filter==="pendiente" && !r.exit);
+
+        return matchName && matchStatus;
+
+    });
+
+    if(!records.length){
+
+        tbody.innerHTML=
+            `<tr>
+                <td colspan="6" class="empty">
+                    No hay registros para mostrar.
+                </td>
+            </tr>`;
+
+        return;
+
+    }
+
+    tbody.innerHTML=records.map(r=>`
+
+        <tr class="student-row"
+            onclick="openStudent('${r.userId}')">
+
+            <td>
+                ${r.name}
+            </td>
+
+            <td>
+                ${r.email}
+            </td>
+
+            <td>
+                ${r.entry || "—"}
+            </td>
+
+            <td>
+                ${r.exit || "—"}
+            </td>
+
+            <td>
+
+                ${
+                    r.exit
+                    ?
+                    '<span class="status green">Completo</span>'
+                    :
+                    '<span class="status yellow">Presente</span>'
+                }
+
+            </td>
+
+            <td>
+                ${calculateHours(r.entry,r.exit)}
+            </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+
+/* =========================================
+   ALUMNOS
+========================================= */
+
+function renderStudents(){
+
+    const users=getUsers();
+
+    const tbody=
+        document.getElementById("studentsTable");
+
+    document.getElementById("studentCount")
+        .textContent=
+        `${users.length} alumno${users.length===1?"":"s"}`;
+
+    if(!users.length){
+
+        tbody.innerHTML=
+            `<tr>
+                <td colspan="5" class="empty">
+                    Todavía no hay alumnos registrados.
+                </td>
+            </tr>`;
+
+        return;
+
+    }
+
+    tbody.innerHTML=users.map(user=>{
+
+        const records=
+            getAttendance()
+            .filter(
+                r=>r.userId===user.id
+            );
+
+        const last=
+            records
+            .sort(
+                (a,b)=>b.date.localeCompare(a.date)
+            )[0];
+
+        return `
+
+        <tr>
+
+            <td>
+                ${
+                    user.photo
+                    ?
+                    `<img
+                        src="${user.photo}"
+                        class="student-avatar"
+                    >`
+                    :
+                    "👤"
+                }
+
+                ${user.name}
+
+            </td>
+
+            <td>
+                ${user.email}
+            </td>
+
+            <td>
+                ${records.length}
+            </td>
+
+            <td>
+                ${
+                    last
+                    ?
+                    formatDate(last.date)+" "+(last.entry||"")
+                    :
+                    "—"
+                }
+            </td>
+
+            <td>
+
+                <button
+                    class="secondary-btn"
+                    onclick="openStudent('${user.id}')">
+                    Ver perfil
+                </button>
+
+            </td>
+
+        </tr>
+
+        `;
+
+    }).join("");
+
+}
+
+
+/* =========================================
+   PERFIL ADMIN
+========================================= */
+
+function openStudent(id){
+
+    const user=getUsers().find(
+        u=>u.id===id
+    );
+
+    if(!user)
+        return;
+
+    const records=
+        getAttendance()
+        .filter(
+            r=>r.userId===id
+        )
+        .sort(
+            (a,b)=>b.date.localeCompare(a.date)
+        );
+
+    const totalHours=records.reduce(
+        (sum,r)=>{
+
+            if(!r.entry || !r.exit)
+                return sum;
+
+            const e=r.entry.split(":").map(Number);
+            const s=r.exit.split(":").map(Number);
+
+            let a=e[0]*60+e[1];
+            let b=s[0]*60+s[1];
+
+            if(b<a)
+                b+=1440;
+
+            return sum+(b-a);
+
+        },
+        0
+    );
+
+    const hours=Math.floor(totalHours/60);
+    const minutes=totalHours%60;
+
+    document.getElementById("studentDetails")
+        .innerHTML=`
+
+        <div class="profile">
+
+            <div class="profile-photo">
+
+                ${
+                    user.photo
+                    ?
+                    `<img
+                        src="${user.photo}"
+                        style="width:100%;height:100%;
+                        object-fit:cover;border-radius:inherit;"
+                    >`
+                    :
+                    "👤"
+                }
+
+            </div>
+
+            <div>
+
+                <h2>${user.name}</h2>
+
+                <p style="color:var(--gris);">
+                    ${user.email}
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="detail-grid">
+
+            <div class="detail">
+
+                <span>Asistencias</span>
+
+                <strong>
+                    ${records.length}
+                </strong>
+
+            </div>
+
+            <div class="detail">
+
+                <span>Horas registradas</span>
+
+                <strong>
+                    ${hours}h ${minutes}m
+                </strong>
+
+            </div>
+
+            <div class="detail">
+
+                <span>Cuenta creada</span>
+
+                <strong>
+                    ${
+                        user.createdAt
+                        ?
+                        new Date(user.createdAt)
+                        .toLocaleDateString("es-AR")
+                        :
+                        "—"
+                    }
+                </strong>
+
+            </div>
+
+            <div class="detail">
+
+                <span>Estado</span>
+
+                <strong style="color:var(--verde);">
+                    Activo
+                </strong>
+
+            </div>
+
+        </div>
+
+        <div style="margin-top:25px;">
+
+            <h3 style="margin-bottom:15px;">
+                Historial
+            </h3>
+
+            <div class="table-scroll">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Entrada</th>
+                            <th>Salida</th>
+                            <th>Horas</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${
+                            records.length
+                            ?
+                            records.map(r=>`
+
+                                <tr>
+
+                                    <td>
+                                        ${formatDate(r.date)}
+                                    </td>
+
+                                    <td>
+                                        ${r.entry||"—"}
+                                    </td>
+
+                                    <td>
+                                        ${r.exit||"—"}
+                                    </td>
+
+                                    <td>
+                                        ${calculateHours(r.entry,r.exit)}
+                                    </td>
+
+                                </tr>
+
+                            `).join("")
+                            :
+                            `
+                            <tr>
+                                <td colspan="4"
+                                    class="empty">
+                                    Sin registros.
+                                </td>
+                            </tr>
+                            `
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        `;
+
+    document
+        .getElementById("studentModal")
+        .classList.remove("hidden");
+
+}
+
+
+function closeStudentModal(){
+
+    document
+        .getElementById("studentModal")
+        .classList.add("hidden");
+
+}
+
+
+/* =========================================
+   SECCIONES ADMIN
+========================================= */
+
+function showAdminSection(section){
+
+    document
+        .getElementById("adminDashboard")
+        .classList.add("hidden");
+
+    document
+        .getElementById("adminQR")
+        .classList.add("hidden");
+
+    document
+        .getElementById("adminStudents")
+        .classList.add("hidden");
+
+    document
+        .getElementById("tabDashboard")
+        .classList.remove("active");
+
+    document
+        .getElementById("tabQR")
+        .classList.remove("active");
+
+    document
+        .getElementById("tabStudents")
+        .classList.remove("active");
+
+    if(section==="dashboard"){
+
+        document
+            .getElementById("adminDashboard")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("tabDashboard")
+            .classList.add("active");
+
+    }
+
+    if(section==="qr"){
+
+        document
+            .getElementById("adminQR")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("tabQR")
+            .classList.add("active");
+
+        renderQR();
+
+    }
+
+    if(section==="students"){
+
+        document
+            .getElementById("adminStudents")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("tabStudents")
+            .classList.add("active");
+
+        renderStudents();
+
+    }
+
+}
+
+
+/* =========================================
+   ADMIN QR
+========================================= */
+
+function renderQR(){
+
+    const qr=getQR();
+
+    createQR(
+        "entryQR",
+        qr.entrada
+    );
+
+    createQR(
+        "exitQR",
+        qr.salida
+    );
+
+    document.getElementById("entryQRText")
+        .textContent=qr.entrada;
+
+    document.getElementById("exitQRText")
+        .textContent=qr.salida;
+
+}
+
+
+function createQR(elementId,text){
+
+    const container=
+        document.getElementById(elementId);
+
+    if(!container)
+        return;
+
+    container.innerHTML="";
+
+    new QRCode(
+        container,
+        {
+            text:text,
+            width:230,
+            height:230,
+            colorDark:"#173f2b",
+            colorLight:"#ffffff",
+            correctLevel:QRCode.CorrectLevel.H
+        }
+    );
+
+}
+
+
+function renewQR(type){
+
+    const qr=getQR();
+
+    qr[type]=generateToken();
+
+    saveQR(qr);
+
+    renderQR();
+
+    alert(
+        `QR de ${type} renovado correctamente.`
+    );
+
+}
+
+
+/* =========================================
+   ESCAPE MODALS
+========================================= */
+
+document
+    .getElementById("qrModal")
+    .addEventListener("click",function(e){
+
+        if(e.target===this)
+            closeQRModal();
+
+    });
+
+document
+    .getElementById("studentModal")
+    .addEventListener("click",function(e){
+
+        if(e.target===this)
+            closeStudentModal();
+
+    });
+
+
+/* =========================================
+   INICIO
+========================================= */
+
+updateClock();
+
+</script>
+
+</body>
+</html>
